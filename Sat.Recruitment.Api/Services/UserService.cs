@@ -16,7 +16,7 @@ namespace Sat.Recruitment.Api.Services
     {
         private readonly List<User> _users = new List<User>();
         
-        public Result CreateUser(User newUser)
+        public async Task<Result> CreateUser(User newUser)
         {
             var errors = "";
 
@@ -52,9 +52,9 @@ namespace Sat.Recruitment.Api.Services
             }
             reader.Close();
             
-            return ValidateUser(newUser, _users);
+            return await ValidateUser(newUser, _users);
         }
-        private Result ValidateUser(User newUser, List<User> _users)
+        private async  Task<Result> ValidateUser(User newUser, List<User> _users)
         {
             try
             {
@@ -86,11 +86,12 @@ namespace Sat.Recruitment.Api.Services
             catch
             {
                 Debug.WriteLine("The list of users has an error");
-                return new Result()
+                var result = new Result()
                 {
                     IsSuccess = false,
                     Errors = "The list of users has an error"
                 };
+                return result;
             }
 
         }
