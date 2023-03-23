@@ -5,9 +5,10 @@ using System.Security.Policy;
 using System;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Sat.Recruitment.Api.Enums;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
+using System.IO;
+using System.Linq;
 
 namespace Sat.Recruitment.Api.Services
 {
@@ -33,15 +34,7 @@ namespace Sat.Recruitment.Api.Services
 
             var reader = ReadUsersFromFile();
 
-            //Normalize email
-            
-            var aux = newUser.Email.Split(new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries);
-
-            var atIndex = aux[0].IndexOf("+", StringComparison.Ordinal);
-
-            aux[0] = atIndex < 0 ? aux[0].Replace(".", "") : aux[0].Replace(".", "").Remove(atIndex);
-
-            newUser.Email = string.Join("@", new string[] { aux[0], aux[1] });
+            newUser.Email = NormalizeEmail(newUser.Email);
 
             while (reader.Peek() >= 0)
             {
@@ -58,27 +51,16 @@ namespace Sat.Recruitment.Api.Services
                 _users.Add(user);
             }
             reader.Close();
+            
+            return ValidateUser(newUser, _users);
+        }
+        private Result ValidateUser(User newUser, List<User> _users)
+        {
             try
             {
                 var isDuplicated = false;
-                foreach (var user in _users)
-                {
-                    if (user.Email == newUser.Email
-                        ||
-                        user.Phone == newUser.Phone)
-                    {
-                        isDuplicated = true;
-                    }
-                    else if (user.Name == newUser.Name)
-                    {
-                        if (user.Address == newUser.Address)
-                        {
-                            isDuplicated = true;
-                            throw new Exception("User is duplicated");
-                        }
+                isDuplicated = _users.Any(x => x.Email == newUser.Email || x.Phone == newUser.Phone || x.Name == newUser.Name || x.Address == newUser.Address);
 
-                    }
-                }
 
                 if (!isDuplicated)
                 {
@@ -103,14 +85,36 @@ namespace Sat.Recruitment.Api.Services
             }
             catch
             {
-                Debug.WriteLine("The user is duplicated");
+                Debug.WriteLine("The list of users has an error");
                 return new Result()
                 {
                     IsSuccess = false,
-                    Errors = "The user is duplicated"
+                    Errors = "The list of users has an error"
                 };
             }
+
         }
+        private string NormalizeEmail(string email)
+        {
+            var aux = email.Split(new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var atIndex = aux[0].IndexOf("+", StringComparison.Ordinal);
+
+            aux[0] = atIndex < 0 ? aux[0].Replace(".", "") : aux[0].Replace(".", "").Remove(atIndex);
+
+            return string.Join("@", new string[] { aux[0], aux[1] });
+        }
+
+        private StreamReader ReadUsersFromFile()
+        {
+            var path = Directory.GetCurrentDirectory() + "/Files/Users.txt";
+
+            FileStream fileStream = new FileStream(path, FileMode.Open);
+
+            StreamReader reader = new StreamReader(fileStream);
+            return reader;
+        }
+
         private decimal Calculate(string userType, decimal money) 
         {
             switch (userType)
@@ -146,7 +150,6 @@ namespace Sat.Recruitment.Api.Services
                     }
                     break;
             }
-
             return money;
         }
         private void ValidateErrors(User newUser, ref string errors)

@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
+using Sat.Recruitment.Api.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,21 +14,24 @@ namespace Sat.Recruitment.Api.Controllers
         public bool IsSuccess { get; set; }
         public string Errors { get; set; }
     }
-
+    
     [ApiController]
     [Route("[controller]")]
     public partial class UsersController : ControllerBase
     {
-
+        [Inject]
+        public IUserService Service { get; set; }
         private readonly List<User> _users = new List<User>();
-        public UsersController()
+        public UsersController(IUserService service)
         {
+            Service = service;
         }
 
         [HttpPost]
         [Route("/create-user")]
         public async Task<Result> CreateUser(string name, string email, string address, string phone, string userType, string money)
         {
+         
             var errors = "";
 
             ValidateErrors(name, email, address, phone, ref errors);

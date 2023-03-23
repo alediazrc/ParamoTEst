@@ -1,6 +1,10 @@
-﻿namespace Sat.Recruitment.Api.Services
+﻿using Sat.Recruitment.Api.Model;
+using System.Threading.Tasks;
+
+namespace Sat.Recruitment.Api.Services
 {
     public interface IUserService
     {
+        public Result CreateUser(User newUser);
     }
 }
