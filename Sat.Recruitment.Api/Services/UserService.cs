@@ -118,9 +118,10 @@ namespace Sat.Recruitment.Api.Services
 
         private decimal Calculate(string userType, decimal money) 
         {
-            switch (userType)
+            var type = userType.ToLower();
+            switch (type)
             {
-                case "Normal":
+                case "normal":
                     if (money > 100)
                     {
                         var percentage = Convert.ToDecimal(0.12);
@@ -135,7 +136,7 @@ namespace Sat.Recruitment.Api.Services
                         money = money + gif;
                     }
                     break;
-                case "SuperUser":
+                case "superuser":
                     if (money > 100)
                     {
                         var percentage = Convert.ToDecimal(0.20);
